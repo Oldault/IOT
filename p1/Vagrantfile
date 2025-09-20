@@ -1,6 +1,8 @@
 server_ip = "192.168.56.110"
 worker_ip = "192.168.56.111"
 
+token = "hibou"
+
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/alpine318"
   config.vm.box_version = "4.3.12"
@@ -14,7 +16,8 @@ Vagrant.configure("2") do |config|
       v.memory = "2048"
       v.cpus = "2"
     end
-    server.vm.provision "shell", path: "./scripts/server_setup.sh"
+    server.vm.provision "shell", path: "./scripts/server_setup.sh",
+      args: [token, server_ip]
   end
     
   config.vm.define "svolodinSW" do |worker|
@@ -25,6 +28,7 @@ Vagrant.configure("2") do |config|
       v.memory = "2048"
       v.cpus = "2"
     end
-    worker.vm.provision "shell", path: "./scripts/worker_setup.sh"
+    worker.vm.provision "shell", path: "./scripts/worker_setup.sh",
+      args: [token, server_ip, worker_ip]
   end
 end

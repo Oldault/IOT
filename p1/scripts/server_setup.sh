@@ -1,13 +1,6 @@
 #!/bin/sh
 
-apk add --no-cache curl openssh
-
-ssh-keygen -A
-rc-update add sshd
-
-curl -sfL https://get.k3s.io | sh -
-rc-update add k3s default
-rc-service k3s start
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server" sh -s - --token $1 --node-ip $2
 
 for i in $(seq 1 60); do
     if [ -f /var/lib/rancher/k3s/server/node-token ]; then
@@ -21,7 +14,7 @@ if [ ! -f /var/lib/rancher/k3s/server/node-token ]; then
     exit 1
 fi
 
-chmod a+r /var/lib/rancher/k3s/server/node-token
+sudo chmod a+r /etc/rancher/k3s/k3s.yaml
 cp /var/lib/rancher/k3s/server/node-token /vagrant/config/k3s_token.txt
 
 if ! curl -k -s https://127.0.0.1:6443/version >/dev/null; then
@@ -29,3 +22,5 @@ if ! curl -k -s https://127.0.0.1:6443/version >/dev/null; then
 fi
 
 echo "k3s server installed and running"
+
+alias k=kubectl
