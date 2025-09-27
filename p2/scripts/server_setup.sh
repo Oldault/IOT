@@ -42,6 +42,31 @@ done
 echo "Node is ready. Waiting for API server to be fully available..."
 sleep 10
 
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+
+# wait for controller deployment to be available
+kubectl -n ingress-nginx wait --for=condition=available deployment/ingress-nginx-controller --timeout=180s || {
+  echo "Controller deployment not available after timeout"
+  kubectl -n ingress-nginx get pods -o wide
+  kubectl -n ingress-nginx logs -l app.kubernetes.io/component=controller --tail=200
+  exit 1
+}
+
+# wait for admission webhook pod (if present) and its endpoints
+kubectl -n ingress-nginx wait --for=condition=ready pod -l app.kubernetes.io/component=admission --timeout=60s || true
+
+# ensure controller service has endpoints
+for i in {1..12}; do
+  ep=$(kubectl get endpoints ingress-nginx-controller-admission -n ingress-nginx -o jsonpath='{.subsets}' 2>/dev/null || true)
+  svc=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.type}' 2>/dev/null || true)
+  if [ -n "$ep" ] || [ "$svc" = "NodePort" ] || [ "$svc" = "LoadBalancer" ]; then
+    echo "Ingress controller service/endpoints ready"
+    break
+  fi
+  echo "Waiting for ingress controller endpoints/service..."
+  sleep 5
+done
+
 kubectl apply -f /app/namespace.yml
 kubectl apply -f /app/deployment.yml
 kubectl apply -f /app/services.yml
