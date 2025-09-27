@@ -9,8 +9,6 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-      nodePort: 30338
-  type: LoadBalancer
 ---
 apiVersion: v1
 kind: Service
@@ -23,8 +21,6 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-      nodePort: 30339
-  type: LoadBalancer
 ---
 apiVersion: v1
 kind: Service
@@ -37,5 +33,3 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-      nodePort: 30340
-  type: LoadBalancer
