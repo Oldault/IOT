@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -35,23 +34,15 @@ echo "k3s server installed and running"
 echo 'alias k=kubectl' >> /etc/profile.d/aliases.sh
 . /etc/profile.d/aliases.sh
 
-echo "Applying Kubernetes configurations..."
-
-while ! kubectl get nodes | grep -q "Ready"; do
+while ! kubectl get nodes --request-timeout='10s' 2>/dev/null | grep -q "Ready"; do
   echo "Waiting for node to be ready..."
   sleep 5
 done
 
-if ! kubectl get namespace hello-kubernetes > /dev/null 2>&1; then
-  kubectl create namespace hello-kubernetes
-fi
+echo "Node is ready. Waiting for API server to be fully available..."
+sleep 10
 
+kubectl apply -f /app/namespace.yml
 kubectl apply -f /app/deployment.yml
 kubectl apply -f /app/services.yml
 kubectl apply -f /app/ingress.yml
-
-echo "Kubernetes configurations applied."
-
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-echo "Ingress controller deployed."
-
