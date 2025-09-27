@@ -1,11 +1,41 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: hello-kubernetes
+  name: app-one
 spec:
   selector:
-    app: hello-kubernetes
+    app: app-one
   ports:
     - protocol: TCP
-      port: 8080
+      port: 80
       targetPort: 8080
+      nodePort: 30338
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-two
+spec:
+  selector:
+    app: app-two
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 30339
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-three
+spec:
+  selector:
+    app: app-three
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 30340
+  type: LoadBalancer

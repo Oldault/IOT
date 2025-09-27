@@ -2,7 +2,6 @@
 #!/bin/sh
 
 if ! command -v docker >/dev/null 2>&1; then
-    echo "Installing Docker..."
     sudo apk update
     sudo apk add docker
     sudo service docker start
