@@ -1,8 +1,10 @@
 #!/bin/sh
 
-curl -s https://get.docker.com | sh
-
-sudo usermod -aG docker $USER
+if ! command -v docker &> /dev/null; then
+    echo "Docker not found. Installing Docker..."
+    curl -s https://get.docker.com | sh
+    sudo usermod -aG docker $USER
+fi
 
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
