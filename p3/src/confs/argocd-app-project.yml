@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dev
+  namespace: argocd
+spec:
+  sourceRepos:
+  - 'https://github.com/Nakusu/owl-llepage-svolodin'
+  destinations:
+  - name: 'dev'
+    namespace: 'dev'
+    server: 'https://kubernetes.default.svc'
