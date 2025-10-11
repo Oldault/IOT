@@ -12,7 +12,7 @@ BLUE := \033[0;34m
 RESET := \033[0m
 
 install:
-	@sudo ./install.sh
+	@bash ./install.sh
 
 # Reload: reload VM (provision on reload if PROVISION=yes)
 argocd-install:
