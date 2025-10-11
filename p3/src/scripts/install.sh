@@ -1,14 +1,22 @@
 #!/bin/sh
 
-if ! command -v docker &> /dev/null; then
+CLUTER_NAME=svolodin
+
+docker ps &>/dev/null
+rc=$?
+if [ $rc -ne 0 ]; then
     echo "Docker not found. Installing Docker..."
     curl -s https://get.docker.com | sh
-    sudo usermod -aG docker $USER
-    sudo usermod -aG docker svolodin
+    usermod -aG docker $USER
 fi
 
-curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.0.0 bash
 
-k3d cluster create $USER
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
 
-kubectl config use-context k3d-$USER
+k3d cluster delete $CLUTER_NAME
+k3d cluster create $CLUTER_NAME
+
+kubectl config use-context k3d-$CLUTER_NAME

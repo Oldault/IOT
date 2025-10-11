@@ -12,11 +12,12 @@ BLUE := \033[0;34m
 RESET := \033[0m
 
 install:
-	@bash ./src/scripts/install.sh
+	@sudo ./src/scripts/install.sh
 
 # Reload: reload VM (provision on reload if PROVISION=yes)
 argocd-install:
 	@echo -e "$(BLUE)Installing Argo CD...$(RESET)"
+	@sudo kubectl apply -f ./src/confs/argocd-namespace.yml
 	@sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 argocd-pwd:
