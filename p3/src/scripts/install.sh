@@ -17,6 +17,6 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
 k3d cluster delete $CLUTER_NAME
-k3d cluster create $CLUTER_NAME
+k3d cluster create $CLUTER_NAME --port "8888:80@loadbalancer"
 
 kubectl config use-context k3d-$CLUTER_NAME

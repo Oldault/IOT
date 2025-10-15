@@ -32,7 +32,7 @@ argocd-pwd:
 # Argocd-web: port-forward argocd-server to localhost:8080
 argocd-web:
 	@echo -e "$(BLUE)Port-forwarding Argo CD server to localhost:8080...$(RESET)"
-	@sudo kubectl apply -f ./src/confs/argocd-ingress.yml & open http://localhost:8080
+	@sudo kubectl -n argocd port-forward svc/argocd-server 8080:443 & open http://localhost:8080
 
 # Help: list available targets and usage
 help:
