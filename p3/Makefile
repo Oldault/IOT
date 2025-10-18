@@ -38,8 +38,7 @@ argocd-deploy:
 	@echo -e "$(BLUE)Deploying Argo CD AppProject and Application...$(RESET)"
 	@kubectl apply -f ./src/confs/argocd-app-project.yml
 	@kubectl apply -f ./src/confs/argocd-app.yml
-	@kubectl apply -f ./src/confs/argocd-ingress.yml
-	@kubectl apply -f ./src/confs/ingress.yml
+	@kubectl apply -f ./src/confs/argocd-app-ingress.yml
 	@echo -e "$(GREEN)Argo CD applications deployed!$(RESET)"
 
 # Check status of Argo CD and applications
