@@ -1,0 +1,51 @@
+# GitLab Helm Chart values for local k3d deployment
+# Minimal configuration for local development
+
+global:
+  # Use local domain for k3d cluster
+  hosts:
+    domain: gitlab.local
+    https: false
+
+  # Disable HTTPS for local development
+  ingress:
+    enabled: true
+    class: traefik
+    tls:
+      enabled: false
+
+  # GitLab edition
+  edition: ce  # Community Edition
+
+  # Use minimal resources for local deployment
+  initialRootPassword:
+    secret: gitlab-initial-root-password
+    key: password
+
+# Disable unnecessary components for local dev
+nginx-ingress:
+  enabled: false
+
+prometheus:
+  install: false
+
+gitlab-runner:
+  install: false
+
+# Cert-manager issuer email
+certmanager-issuer:
+  email: admin@gitlab.local
+
+# Reduce resource requirements for local development
+gitlab:
+  webservice:
+    minReplicas: 1
+    maxReplicas: 1
+
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+
+# Enable registry with minimal resources
+registry:
+  enabled: true
