@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: playground
+  namespace: argocd
+spec:
+  project: dev
+  source:
+    repoURL: http://gitlab-webservice-default.gitlab.svc:8181/root/owl-llepage-svolodin.git
+    targetRevision: main
+    path: manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true

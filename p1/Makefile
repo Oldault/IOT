@@ -4,17 +4,14 @@ SHELL := /bin/bash
 VAGRANT ?= vagrant
 VM_NAME ?= default
 
-# Colors
 RED := \033[0;31m
 GREEN := \033[0;32m
 YELLOW := \033[0;33m
 BLUE := \033[0;34m
 RESET := \033[0m
 
-# Default: restart (destroy then up)
 restart: destroy up
 
-# Destroy: force non-interactive; also try piping confirmations for compatibility
 destroy:
 	@echo -e "$(YELLOW)Destroying Vagrant VM...$(RESET)"
 	@set -o pipefail; \
@@ -24,37 +21,30 @@ destroy:
 	  echo -e "$(RED)Vagrant not found in PATH.$(RESET)" && exit 1; \
 	fi
 
-# Up: start VM, with optional provider (e.g., make up PROVIDER=virtualbox)
 up:
 	@echo -e "$(GREEN)Bringing Vagrant VM up...$(RESET)"
 	@$(VAGRANT) up $(if $(PROVIDER),--provider=$(PROVIDER))
 
-# Status: show vagrant status
 status:
 	@echo -e "$(BLUE)Vagrant status:$(RESET)"
 	@$(VAGRANT) status
 
-# SSH: ssh into the VM (pass optional NAME or use VM_NAME)
 ssh:
 	@echo -e "$(BLUE)SSH into VM '$(VM_NAME)'...$(RESET)"
 	@$(VAGRANT) ssh $(VM_NAME)
 
-# Provision: run vagrant provision
 provision:
 	@echo -e "$(BLUE)Provisioning VM...$(RESET)"
 	@$(VAGRANT) provision $(VM_NAME)
 
-# Halt: stop the VM gracefully
 halt:
 	@echo -e "$(YELLOW)Halting VM...$(RESET)"
 	@$(VAGRANT) halt $(VM_NAME)
 
-# Reload: reload VM (provision on reload if PROVISION=yes)
 reload:
 	@echo -e "$(YELLOW)Reloading VM...$(RESET)"
 	@$(VAGRANT) reload $(VM_NAME) $(if $(filter yes,$(PROVISION)),--provision,)
 
-# Help: list available targets and usage
 help:
 	@printf "\nAvailable targets:\n"
 	@printf "  %-12s %s\n" "restart"   "Destroy (force) then up"

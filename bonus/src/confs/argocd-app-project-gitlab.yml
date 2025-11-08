@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dev
+  namespace: argocd
+spec:
+  sourceRepos:
+  - 'http://gitlab-webservice-default.gitlab.svc:8181/root/owl-llepage-svolodin.git'
+  destinations:
+  - name: 'dev'
+    namespace: 'dev'
+    server: 'https://kubernetes.default.svc'
