@@ -92,5 +92,6 @@ help:
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "clean" "Remove Argo CD applications (keep Argo CD)"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "uninstall" "Uninstall everything (Argo CD + cluster)"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "help" "Show this help message"
+	@printf "\n$(YELLOW)Note:$(RESET) For GitLab integration, see ../bonus directory\n"
 	@printf "\n"
 
