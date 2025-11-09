@@ -59,5 +59,5 @@ help:
 	@printf "Examples:\n"
 	@printf "  %-36s %s\n" "make restart" "Destroy and bring up the VM"
 	@printf "  %-36s %s\n" "make up PROVIDER=virtualbox" "Start with specific provider"
-	@printf "  %-36s %s\n\n" "make ssh VM_NAME=web" "SSH into 'web' VM"
+	@printf "  %-36s %s\n\n" "make ssh VM_NAME=svolodinS" "SSH into the server VM"
 
