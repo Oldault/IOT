@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
 spec:
   sourceRepos:
-  - 'http://gitlab-webservice-default.gitlab.svc:8181/root/owl-llepage-svolodin.git'
+  - 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/owl-llepage-svolodin.git'
   destinations:
   - name: 'dev'
     namespace: 'dev'

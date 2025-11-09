@@ -39,6 +39,6 @@ if k3d cluster list | grep -q "^$CLUSTER_NAME "; then
 fi
 
 echo "Creating k3d cluster '$CLUSTER_NAME'..."
-k3d cluster create $CLUSTER_NAME --port "8888:80@loadbalancer"
+k3d cluster create $CLUSTER_NAME --image rancher/k3s:v1.30.10-k3s1 --port "8888:80@loadbalancer"
 
 echo "Cluster '$CLUSTER_NAME' created successfully!"
