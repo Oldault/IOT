@@ -19,6 +19,7 @@ all: install status
 install:
 	@echo -e "$(BLUE)Installing GitLab...$(RESET)"
 	@./src/scripts/install.sh
+	@./src/scripts/install_gitlab.sh
 	@echo -e "$(GREEN)GitLab installation complete!$(RESET)"
 
 # Check status of GitLab pods and services
@@ -109,6 +110,7 @@ gitlab-restart: gitlab-stop
 # Uninstall GitLab completely
 uninstall:
 	@echo -e "$(BLUE)Uninstalling GitLab...$(RESET)"
+	@./src/scripts/uninstall_gitlab.sh
 	@./src/scripts/uninstall.sh
 	@echo -e "$(GREEN)GitLab uninstallation complete!$(RESET)"
 

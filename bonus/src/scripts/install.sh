@@ -2,126 +2,43 @@
 
 set -e
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-RESET='\033[0m'
+CLUSTER_NAME=svolodin
 
-GITLAB_NAMESPACE="gitlab"
-GITLAB_RELEASE="gitlab"
-GITLAB_PASSWORD="Sup3rS3cur3P@ss!"
-
-echo -e "${BLUE}Starting GitLab installation for bonus part...${RESET}"
-
-# Check if Helm is installed
-echo -e "${BLUE}Checking Helm installation...${RESET}"
-if ! command -v helm &>/dev/null; then
-    echo -e "${YELLOW}Helm not found. Installing Helm locally...${RESET}"
-
-    # Create local bin directory if it doesn't exist
-    LOCAL_BIN="$HOME/.local/bin"
-    mkdir -p "$LOCAL_BIN"
-
-    # Download and install Helm locally
-    HELM_VERSION="v3.19.0"
-    HELM_TAR="helm-${HELM_VERSION}-linux-amd64.tar.gz"
-    TMP_DIR=$(mktemp -d)
-
-    cd "$TMP_DIR"
-    curl -fsSL "https://get.helm.sh/${HELM_TAR}" -o "${HELM_TAR}"
-    tar -zxf "${HELM_TAR}"
-    mv linux-amd64/helm "$LOCAL_BIN/helm"
-    chmod +x "$LOCAL_BIN/helm"
-    cd - > /dev/null
-    rm -rf "$TMP_DIR"
-
-    # Add to PATH for current session
-    export PATH="$LOCAL_BIN:$PATH"
-
-    # Add to PATH permanently if not already there
-    if ! grep -q "$LOCAL_BIN" "$HOME/.bashrc" 2>/dev/null; then
-        echo "export PATH=\"$LOCAL_BIN:\$PATH\"" >> "$HOME/.bashrc"
-    fi
-
-    echo -e "${GREEN}Helm installed successfully to $LOCAL_BIN!${RESET}"
-    echo -e "${YELLOW}Note: You may need to run 'source ~/.bashrc' or restart your shell${RESET}"
+echo "Checking Docker installation..."
+if ! docker ps &>/dev/null; then
+    echo "Docker not found or not running. Installing Docker..."
+    curl -s https://get.docker.com | sudo sh
+    sudo usermod -aG docker $USER
+    echo "Docker installed. You may need to log out and back in for group changes to take effect."
 else
-    echo -e "${GREEN}Helm is already installed ($(helm version --short))${RESET}"
+    echo "Docker is already installed and running."
 fi
 
-# Create gitlab namespace
-echo -e "${BLUE}Creating GitLab namespace...${RESET}"
-kubectl apply -f ./src/confs/namespace.yml
-
-# Create initial root password secret
-echo -e "${BLUE}Creating GitLab initial root password secret...${RESET}"
-kubectl create secret generic gitlab-initial-root-password \
-    --from-literal=password="$GITLAB_PASSWORD" \
-    -n "$GITLAB_NAMESPACE" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-# Add GitLab Helm repository
-echo -e "${BLUE}Adding GitLab Helm repository...${RESET}"
-helm repo add gitlab https://charts.gitlab.io/ 2>/dev/null || true
-helm repo update
-
-# Check if GitLab is already installed
-if helm list -n "$GITLAB_NAMESPACE" | grep -q "$GITLAB_RELEASE"; then
-    echo -e "${YELLOW}GitLab is already installed. Upgrading...${RESET}"
-    helm upgrade "$GITLAB_RELEASE" gitlab/gitlab \
-        -n "$GITLAB_NAMESPACE" \
-        -f ./src/confs/gitlab-values.yaml \
-        --timeout 10m \
-        --wait
+echo "Checking k3d installation..."
+if ! command -v k3d &>/dev/null; then
+    echo "Installing k3d..."
+    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.0.0 bash
 else
-    echo -e "${BLUE}Installing GitLab via Helm...${RESET}"
-    echo -e "${YELLOW}This may take several minutes. Please be patient...${RESET}"
-    helm install "$GITLAB_RELEASE" gitlab/gitlab \
-        -n "$GITLAB_NAMESPACE" \
-        -f ./src/confs/gitlab-values.yaml \
-        --timeout 10m \
-        --wait
+    echo "k3d is already installed ($(k3d version | head -1))."
 fi
 
-# Wait for GitLab pods to be ready
-echo -e "${YELLOW}Waiting for GitLab pods to be ready...${RESET}"
-echo -e "${YELLOW}This can take 5-10 minutes on first installation...${RESET}"
-kubectl wait --for=condition=Ready pods --all -n "$GITLAB_NAMESPACE" --timeout=600s || true
-
-# Add gitlab.local to /etc/hosts if not present
-echo -e "${BLUE}Configuring /etc/hosts for gitlab.local...${RESET}"
-if ! grep -q "gitlab.local" /etc/hosts 2>/dev/null; then
-    echo -e "${YELLOW}Adding gitlab.local to /etc/hosts (requires sudo)...${RESET}"
-    if echo "127.0.0.1 gitlab.local" | sudo -n tee -a /etc/hosts > /dev/null 2>&1; then
-        echo -e "${GREEN}Added gitlab.local to /etc/hosts${RESET}"
-    else
-        echo -e "${YELLOW}Could not add to /etc/hosts (sudo required or not available)${RESET}"
-        echo -e "${YELLOW}You can manually add this line to /etc/hosts:${RESET}"
-        echo -e "${YELLOW}  127.0.0.1 gitlab.local${RESET}"
-        echo -e "${YELLOW}Or use port-forwarding with 'make gitlab-web'${RESET}"
-    fi
+echo "Checking kubectl installation..."
+if ! command -v kubectl &>/dev/null; then
+    echo "Installing kubectl..."
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
 else
-    echo -e "${GREEN}gitlab.local already in /etc/hosts${RESET}"
+    echo "kubectl is already installed ($(kubectl version --client --short 2>/dev/null || kubectl version --client))."
 fi
 
-echo -e "${GREEN}===========================================${RESET}"
-echo -e "${GREEN}GitLab installation complete!${RESET}"
-echo -e "${GREEN}===========================================${RESET}"
-echo -e ""
-echo -e "${BLUE}Access GitLab at: ${YELLOW}http://gitlab.local:8888${RESET}"
-echo -e "${BLUE}Username: ${YELLOW}root${RESET}"
-echo -e "${BLUE}Password: ${YELLOW}$GITLAB_PASSWORD${RESET}"
-echo -e ""
-echo -e "${YELLOW}IMPORTANT: Root user needs to be created on first access.${RESET}"
-echo -e "${YELLOW}If login fails, create root user with:${RESET}"
-echo -e "${YELLOW}  cd bonus && kubectl exec -n gitlab deployment/gitlab-toolbox -- \\${RESET}"
-echo -e "${YELLOW}    gitlab-rails runner /tmp/create-root-user2.rb${RESET}"
-echo -e ""
-echo -e "${YELLOW}Note: Make sure port-forwarding is set up or use the cluster load balancer${RESET}"
-echo -e "${YELLOW}If using k3d loadbalancer on port 8888, access via: http://gitlab.local:8888${RESET}"
-echo -e ""
-echo -e "${BLUE}To check GitLab status, run:${RESET}"
-echo -e "  kubectl get pods -n $GITLAB_NAMESPACE"
-echo -e ""
+echo "Setting up k3d cluster '$CLUSTER_NAME'..."
+if k3d cluster list | grep -q "^$CLUSTER_NAME "; then
+    echo "Cluster '$CLUSTER_NAME' already exists. Deleting it first..."
+    k3d cluster delete $CLUSTER_NAME
+fi
+
+echo "Creating k3d cluster '$CLUSTER_NAME'..."
+k3d cluster create $CLUSTER_NAME --port "8888:80@loadbalancer"
+
+echo "Cluster '$CLUSTER_NAME' created successfully!"
