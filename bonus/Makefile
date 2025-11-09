@@ -19,6 +19,8 @@ all: install status
 install:
 	@echo -e "$(BLUE)Installing GitLab...$(RESET)"
 	@./src/scripts/install.sh
+	@k3d kubeconfig merge $(CLUSTER_NAME) --kubeconfig-merge-default
+	@kubectl config use-context k3d-$(CLUSTER_NAME)
 	@./src/scripts/install_gitlab.sh
 	@echo -e "$(GREEN)GitLab installation complete!$(RESET)"
 
