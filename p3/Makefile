@@ -30,7 +30,7 @@ argocd-install:
 	@sleep 10
 	@kubectl -n argocd patch deployment argocd-repo-server --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/securityContext/seccompProfile"}]'
 	@echo -e "$(YELLOW)Waiting for Argo CD pods to be ready...$(RESET)"
-	@kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s || true
+	@kubectl wait --for=condition=Ready pods --all -n argocd || true
 	@echo -e "$(GREEN)Argo CD installed successfully!$(RESET)"
 
 # Deploy AppProject and Application to Argo CD
