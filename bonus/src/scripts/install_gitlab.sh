@@ -70,8 +70,6 @@ if helm list -n "$GITLAB_NAMESPACE" | grep -q "$GITLAB_RELEASE"; then
 else
     echo -e "${BLUE}Installing GitLab via Helm...${RESET}"
     echo -e "${YELLOW}This will take 5-10 minutes. Please be patient...${RESET}"
-    echo -e "${YELLOW}Components being installed: Webservice, Sidekiq, Gitaly, PostgreSQL, Redis${RESET}"
-    echo -e "${YELLOW}Disabled for optimization: KAS, Registry, Minio, Runner, Prometheus${RESET}"
     helm install "$GITLAB_RELEASE" gitlab/gitlab \
         -n "$GITLAB_NAMESPACE" \
         -f ./src/confs/gitlab-values.yaml \

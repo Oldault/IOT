@@ -1,6 +1,5 @@
 global:
   edition: ce
-
   hosts:
     domain: gitlab.local
     https: false
@@ -14,13 +13,6 @@ global:
   initialRootPassword:
     secret: gitlab-initial-root-password
     key: password
-
-  kas:
-    enabled: false
-
-  minio:
-    enabled: false
-
 nginx-ingress:
   enabled: false
 
@@ -29,90 +21,26 @@ prometheus:
 
 gitlab-runner:
   install: false
-
-# Disable Minio (object storage - only needed for registry)
-minio:
-  install: false
-
 certmanager-issuer:
   email: admin@gitlab.local
-
 gitlab:
-  # Core webservice - enough memory for Git + UI (avoid OOM)
   webservice:
     minReplicas: 1
     maxReplicas: 1
-    workerProcesses: 2
+    workerProcesses: 1
     resources:
       requests:
-        memory: 1.5G
-        cpu: 300m
-      limits:
-        memory: 2G
-        cpu: 1000m
+        memory: 1.25G
 
-  # Background job processor - needs more memory (was OOMing at 512M)
   sidekiq:
     minReplicas: 1
     maxReplicas: 1
-    concurrency: 10
-    resources:
-      requests:
-        memory: 1G
-        cpu: 300m
-      limits:
-        memory: 1.5G
-        cpu: 1000m
 
-  # Disable KAS (Kubernetes Agent Server - not needed for ArgoCD)
   kas:
-    enabled: false
-
-  # Git storage backend - reasonable limits
-  gitaly:
-    resources:
-      requests:
-        memory: 500M
-        cpu: 200m
-      limits:
-        memory: 1G
-        cpu: 500m
-
-  # Git SSH/HTTP access - lightweight
-  gitlab-shell:
     minReplicas: 1
-    maxReplicas: 1
-    resources:
-      requests:
-        memory: 128M
-        cpu: 100m
-      limits:
-        memory: 256M
-        cpu: 200m
 
-# Disable Container Registry (not needed - only using Git repos)
+  sidekiq:
+    concurrency: 10
+
 registry:
-  enabled: false
-
-# PostgreSQL - reasonable configuration
-postgresql:
-  install: true
-  resources:
-    requests:
-      memory: 512M
-      cpu: 200m
-    limits:
-      memory: 1G
-      cpu: 500m
-
-# Redis - lightweight cache
-redis:
-  install: true
-  master:
-    resources:
-      requests:
-        memory: 256M
-        cpu: 100m
-      limits:
-        memory: 512M
-        cpu: 200m
+  enabled: true

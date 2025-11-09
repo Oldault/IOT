@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: all install status get-password gitlab-web argocd-deploy-gitlab argocd-gitlab-creds gitlab-stop gitlab-start gitlab-restart uninstall clean verify help
+.PHONY: all install status get-password gitlab-web argocd-deploy-gitlab argocd-gitlab-creds uninstall clean verify help
 
 CLUSTER_NAME ?= svolodin
 GITLAB_NAMESPACE := gitlab
@@ -74,42 +74,6 @@ argocd-deploy-gitlab: argocd-gitlab-creds
 	@echo -e "$(GREEN)Argo CD configured to use GitLab!$(RESET)"
 	@echo -e "$(YELLOW)Verify with: kubectl get application playground -n argocd$(RESET)"
 
-# Stop GitLab pods (data persists in PVCs)
-gitlab-stop:
-	@echo -e "$(BLUE)Stopping GitLab pods (data will persist)...$(RESET)"
-	@echo -e "$(YELLOW)Scaling down deployments...$(RESET)"
-	@kubectl scale deployment --all --replicas=0 -n $(GITLAB_NAMESPACE)
-	@echo -e "$(YELLOW)Scaling down statefulsets...$(RESET)"
-	@kubectl scale statefulset --all --replicas=0 -n $(GITLAB_NAMESPACE)
-	@echo -e "$(GREEN)GitLab pods stopped! Data is preserved in PVCs.$(RESET)"
-	@echo -e "$(YELLOW)To start GitLab again: make gitlab-start$(RESET)"
-
-# Start GitLab pods (restore from persistent data)
-gitlab-start:
-	@echo -e "$(BLUE)Starting GitLab pods...$(RESET)"
-	@echo -e "$(YELLOW)Scaling up statefulsets...$(RESET)"
-	@kubectl scale statefulset gitlab-gitaly --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale statefulset gitlab-postgresql --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale statefulset gitlab-redis-master --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@echo -e "$(YELLOW)Waiting for databases to be ready...$(RESET)"
-	@sleep 10
-	@echo -e "$(YELLOW)Scaling up deployments...$(RESET)"
-	@kubectl scale deployment gitlab-certmanager --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-certmanager-cainjector --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-certmanager-webhook --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-gitlab-exporter --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-gitlab-shell --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-sidekiq-all-in-1-v2 --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-toolbox --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@kubectl scale deployment gitlab-webservice-default --replicas=1 -n $(GITLAB_NAMESPACE) 2>/dev/null || true
-	@echo -e "$(YELLOW)Note: KAS, Minio, and Registry are disabled for optimization$(RESET)"
-	@echo -e "$(GREEN)GitLab pods starting! Check status with: make status$(RESET)"
-
-# Restart GitLab pods
-gitlab-restart: gitlab-stop
-	@echo -e "$(YELLOW)Waiting 5 seconds before restart...$(RESET)"
-	@sleep 5
-	@$(MAKE) gitlab-start
 
 # Uninstall GitLab completely
 uninstall:
@@ -137,9 +101,6 @@ help:
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "verify" "Verify GitLab configuration and optimizations"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "get-password" "Get GitLab root password"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "gitlab-web" "Port-forward GitLab to localhost:8081"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "gitlab-stop" "Stop GitLab pods (data persists)"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "gitlab-start" "Start GitLab pods (restore data)"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "gitlab-restart" "Restart GitLab pods"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "argocd-deploy-gitlab" "Configure ArgoCD to use GitLab"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "argocd-gitlab-creds" "Configure GitLab credentials in ArgoCD"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "clean" "Clean GitLab data (keep GitLab installed)"
