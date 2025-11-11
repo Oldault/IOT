@@ -17,7 +17,7 @@ fi
 echo "Checking k3d installation..."
 if ! command -v k3d &>/dev/null; then
     echo "Installing k3d..."
-    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.0.0 bash
+    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 else
     echo "k3d is already installed ($(k3d version | head -1))."
 fi

@@ -81,7 +81,10 @@ clean:
 
 # Help: list available targets and usage
 help:
-	@printf "\n$(BLUE)Available targets:$(RESET)\n\n"
+	@printf "\n$(BLUE)p3 - ArgoCD with GitHub$(RESET)\n\n"
+	@printf "$(YELLOW)Recommended:$(RESET) Use the orchestration Makefile in parent directory\n"
+	@printf "  Run: $(GREEN)cd .. && make help$(RESET)\n\n"
+	@printf "$(BLUE)Available targets:$(RESET)\n\n"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "all" "Complete setup (install + argocd-install + argocd-deploy)"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "install" "Install Docker, k3d, kubectl, and create cluster"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "argocd-install" "Install Argo CD in the cluster"
@@ -92,6 +95,6 @@ help:
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "clean" "Remove Argo CD applications (keep Argo CD)"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "uninstall" "Uninstall everything (Argo CD + cluster)"
 	@printf "  $(GREEN)%-18s$(RESET) %s\n" "help" "Show this help message"
-	@printf "\n$(YELLOW)Note:$(RESET) For GitLab integration, see ../bonus directory\n"
+	@printf "\n$(YELLOW)Next step:$(RESET) After verifying p3, run: $(GREEN)cd ../bonus && make all$(RESET)\n"
 	@printf "\n"
 
