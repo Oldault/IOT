@@ -1,8 +1,7 @@
 SHELL := /bin/bash
-.PHONY: restart destroy up status ssh provision halt reload help
+.PHONY: restart destroy up status help
 
 VAGRANT ?= vagrant
-VM_NAME ?= default
 
 RED := \033[0;31m
 GREEN := \033[0;32m
@@ -29,32 +28,12 @@ status:
 	@echo -e "$(BLUE)Vagrant status:$(RESET)"
 	@$(VAGRANT) status
 
-ssh:
-	@echo -e "$(BLUE)SSH into VM '$(VM_NAME)'...$(RESET)"
-	@$(VAGRANT) ssh $(VM_NAME)
-
-provision:
-	@echo -e "$(BLUE)Provisioning VM...$(RESET)"
-	@$(VAGRANT) provision $(VM_NAME)
-
-halt:
-	@echo -e "$(YELLOW)Halting VM...$(RESET)"
-	@$(VAGRANT) halt $(VM_NAME)
-
-reload:
-	@echo -e "$(YELLOW)Reloading VM...$(RESET)"
-	@$(VAGRANT) reload $(VM_NAME) $(if $(filter yes,$(PROVISION)),--provision,)
-
 help:
 	@printf "\nAvailable targets:\n"
 	@printf "  %-12s %s\n" "restart"   "Destroy (force) then up"
 	@printf "  %-12s %s\n" "destroy"   "Destroy VM non-interactively"
 	@printf "  %-12s %s\n" "up"        "Start VM (use PROVIDER=virtualbox)"
 	@printf "  %-12s %s\n" "status"    "Show vagrant status"
-	@printf "  %-12s %s\n" "ssh"       "SSH into VM (use VM_NAME=name)"
-	@printf "  %-12s %s\n" "provision" "Run vagrant provision"
-	@printf "  %-12s %s\n" "halt"      "Halt the VM"
-	@printf "  %-12s %s\n" "reload"    "Reload VM (PROVISION=yes to provision)"
 	@printf "  %-12s %s\n\n" "help"      "Show this help message"
 	@printf "Examples:\n"
 	@printf "  %-36s %s\n" "make restart" "Destroy and bring up the VM"
