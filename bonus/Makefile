@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: all install status get-password gitlab-web argocd-deploy-gitlab argocd-gitlab-creds uninstall clean verify help
+.PHONY: all install status get-password gitlab-web uninstall clean help
 
 CLUSTER_NAME ?= svolodin
 GITLAB_NAMESPACE := gitlab
@@ -33,10 +33,6 @@ status:
 	@echo -e "\n$(BLUE)GitLab Ingresses:$(RESET)"
 	@kubectl get ingress -n $(GITLAB_NAMESPACE) 2>/dev/null || echo "$(YELLOW)No ingresses in gitlab namespace yet$(RESET)"
 
-# Verify GitLab configuration and optimizations
-verify:
-	@./verify-gitlab.sh
-
 # Get GitLab root password
 get-password:
 	@echo -e "$(BLUE)Retrieving GitLab root password...$(RESET)"
@@ -50,29 +46,9 @@ gitlab-web:
 	@echo -e "$(YELLOW)Username: root$(RESET)"
 	@echo -e "$(YELLOW)Password: Run 'make get-password' to get the password$(RESET)"
 	@echo -e "$(YELLOW)Note: ArgoCD uses port 8080, GitLab uses 8081$(RESET)"
+	@echo -e "$(BLUE)svc url : http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/owl-llepage-svolodin.git$(RESET)"
 	@echo -e ""
 	@kubectl port-forward -n $(GITLAB_NAMESPACE) svc/gitlab-webservice-default 8081:8181
-
-# Configure Argo CD credentials for GitLab repository (internal service)
-argocd-gitlab-creds:
-	@echo -e "$(BLUE)Configuring GitLab repository credentials in Argo CD...$(RESET)"
-	@kubectl create secret generic gitlab-repo-secret \
-		-n argocd \
-		--from-literal=type=git \
-		--from-literal=url=http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/root/owl-llepage-svolodin.git \
-		--from-literal=username=root \
-		--from-literal=password=argocd-migration-2024-token \
-		--dry-run=client -o yaml | kubectl apply -f -
-	@kubectl label secret gitlab-repo-secret -n argocd argocd.argoproj.io/secret-type=repository --overwrite
-	@echo -e "$(GREEN)GitLab credentials configured!$(RESET)"
-
-# Deploy ArgoCD Application to use GitLab (instead of GitHub)
-argocd-deploy-gitlab: argocd-gitlab-creds
-	@echo -e "$(BLUE)Deploying Argo CD AppProject and Application (GitLab)...$(RESET)"
-	@kubectl apply -f ./src/confs/argocd-app-project-gitlab.yml
-	@kubectl apply -f ./src/confs/argocd-app-gitlab.yml
-	@echo -e "$(GREEN)Argo CD configured to use GitLab!$(RESET)"
-	@echo -e "$(YELLOW)Verify with: kubectl get application playground -n argocd$(RESET)"
 
 
 # Uninstall GitLab completely
@@ -98,18 +74,9 @@ help:
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "all" "Complete setup (install + status)"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "install" "Install GitLab in the k3d cluster (requires p3)"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "status" "Check status of GitLab pods and services"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "verify" "Verify GitLab configuration and optimizations"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "get-password" "Get GitLab root password"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "gitlab-web" "Port-forward GitLab to localhost:8081"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "argocd-deploy-gitlab" "Configure ArgoCD to use GitLab"
-	@printf "  $(GREEN)%-25s$(RESET) %s\n" "argocd-gitlab-creds" "Configure GitLab credentials in ArgoCD"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "clean" "Clean GitLab data (keep GitLab installed)"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "uninstall" "Uninstall GitLab completely"
 	@printf "  $(GREEN)%-25s$(RESET) %s\n" "help" "Show this help message"
-	@printf "\n$(YELLOW)Correct execution order:$(RESET)\n"
-	@printf "  1. $(GREEN)cd ../p3 && make all$(RESET)               # Setup ArgoCD with GitHub\n"
-	@printf "  2. Verify p3 works (test ArgoCD + GitHub)\n"
-	@printf "  3. $(GREEN)cd ../bonus && make all$(RESET)            # Add GitLab\n"
-	@printf "  4. $(GREEN)make argocd-deploy-gitlab$(RESET)          # Switch ArgoCD to GitLab\n"
-	@printf "  5. Verify bonus works (test ArgoCD + GitLab)\n"
 	@printf "\n"
