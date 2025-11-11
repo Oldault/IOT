@@ -60,22 +60,14 @@ echo -e "${BLUE}Adding GitLab Helm repository...${RESET}"
 helm repo add gitlab https://charts.gitlab.io/ 2>/dev/null || true
 helm repo update
 
-if helm list -n "$GITLAB_NAMESPACE" | grep -q "$GITLAB_RELEASE"; then
-    echo -e "${YELLOW}GitLab is already installed. Upgrading with new configuration...${RESET}"
-    helm upgrade "$GITLAB_RELEASE" gitlab/gitlab \
-        -n "$GITLAB_NAMESPACE" \
-        -f ./src/confs/gitlab-values.yaml \
-        --timeout 15m \
-        --wait
-else
-    echo -e "${BLUE}Installing GitLab via Helm...${RESET}"
-    echo -e "${YELLOW}This will take 5-10 minutes. Please be patient...${RESET}"
-    helm install "$GITLAB_RELEASE" gitlab/gitlab \
-        -n "$GITLAB_NAMESPACE" \
-        -f ./src/confs/gitlab-values.yaml \
-        --timeout 15m \
-        --wait
-fi
+
+echo -e "${BLUE}Installing GitLab via Helm...${RESET}"
+echo -e "${YELLOW}This will take 5-10 minutes. Please be patient...${RESET}"
+helm upgrade --install "$GITLAB_RELEASE" gitlab/gitlab \
+    -n "$GITLAB_NAMESPACE" \
+    -f ./src/confs/gitlab-values.yaml \
+    --timeout 30m \
+    --wait
 
 echo -e "${YELLOW}Waiting for GitLab pods to be ready...${RESET}"
 echo -e "${YELLOW}This can take 5-10 minutes on first installation...${RESET}"
